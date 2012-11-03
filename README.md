@@ -8,7 +8,9 @@ You start with basic elements. You can **clone** elements and **merge** them to 
 
 The game is completely playable on the client side so eventually it'll run on a **Github** page.
 
-## Current state / Changelog
+## Current state / Changelog / TODO
 
-Right now the game is merely a POC. See it live at http://ozh.org/alchemy
+Right now the game is just a POC. See it live at http://ozh.github.com/game-off-2012/
+
+
 
