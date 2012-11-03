@@ -20,6 +20,8 @@ Initial POC live at http://ozh.github.com/game-off-2012/
 
 - Every [interval or event to be determined] a __popular character__ will be introduced and available as an element, allowing for new combos (example: __IBM + Bill Gates = MS DOS__)
 
+- This needs badges. People love badges.
+
 ### Needs
 
 - Ideas for dozens of mixable elements. I think the game will start being interesting around 250 elements.
