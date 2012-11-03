@@ -1,16 +1,26 @@
 # Computer Alchemy
 
-This game is an attempt at porting the iPhone/Android game **Alchemy** to Javascript.
+This game is an attempt at porting the iPhone/Android game **Alchemy** to Javascript. The game is completely playable on the client side so eventually it'll run on a **Github** page.
 
 ## Game concept
 
 You start with basic elements. You can **clone** elements and **merge** them to create new ones, and so on.
 
-The game is completely playable on the client side so eventually it'll run on a **Github** page.
-
 ## Current state / Changelog / TODO
 
-Right now the game is just a POC. See it live at http://ozh.github.com/game-off-2012/
+Initial POC live at http://ozh.github.com/game-off-2012/
 
+### Game ideas
 
+- _Elements_ will be __computer related elements__, combined to create new ones (example: __Python + Perl = Ruby__). Nothing random, just semi documented stuff (Wikipedia FTW if unsure)
+
+- **Coffee** will be a special element, available from start, used to improve on existing elements when no real combo is available (example: **Fortran + Coffee = Algol**) (yeah, I didn't know about Algol either, yet it's been part of the root of many things)
+
+- Every [interval or event to be determined] a __popular character__ will be introduced and available as an element, allowing for new combos (example: __IBM + Bill Gates = MS DOS__)
+
+### Needs
+
+- Ideas for dozens of mixable elements. I think the game will start being interesting around 250 elements.
+
+- Sexy 32x32 icons for every element. Doh.
 
