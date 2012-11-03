@@ -1,0 +1,87 @@
+body {
+	text-align:center;
+	background:#666;
+	font-family: 'Open Sans', sans-serif;
+	margin-bottom:100px;
+}
+
+#wrap {
+	text-align:left;
+	width:945px;
+	margin:0 auto;
+}
+
+#bar {
+	border-radius:10px;
+	padding:2px 10px 2px 60px;
+	margin-bottom:10px;
+	border:1px solid #EEE2E2;
+	background:#7D6B6B url(../images/lab-glass.png) -10px 5px no-repeat;
+}
+
+a, a:visited {text-decoration: none; color:inherit;}
+a:hover{text-decoration: underline;}
+
+h1 {margin:3px 0px;}
+
+div.clear {width:1px;height:1px;clear:both;}
+
+#game {
+	margin-bottom: 10px;
+}
+
+#inventory {
+	background: #9C9494;
+	border-radius:10px;
+	padding:5px 7px;
+	border:1px solid #EEE2E2;
+	max-height:160px;
+	overflow:auto;
+}
+
+#play {
+	margin-top:10px;
+	background: #CCC2C2;
+	height:400px;
+	border:1px solid #EEE2E2;
+	border-radius:10px;
+	padding:5px 7px;
+}
+
+#reset {
+	float:right;
+	background: #9C9494;
+	border-radius:10px;
+	padding:5px 7px;
+	border:1px solid #EEE2E2;
+	cursor:pointer;
+}
+
+.elem {
+	width:32px;
+	height:32px;
+	float:left;
+	margin:3px;
+	overflow:hidden;
+	word-break: break-all;
+	cursor:move;
+	line-height:10px;
+	ztext-indent:-999px;
+	border-radius:5px;
+}
+
+#inventory .elem {
+	border: 1px solid red;
+	background:#ffa;
+}
+
+#play .elem {
+	border: 1px solid #a2f;
+	background:white;
+}
+
+
+/*** elements ***/
+#game div.elem_GUI { background: transparent url(../images/elements/gui.png) no-repeat; }
+#game div.elem_IBM { background: transparent url(../images/elements/ibm.gif) no-repeat; }
+
