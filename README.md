@@ -1,6 +1,8 @@
+This is my take in the <a href="https://github.com/blog/1303-github-game-off">Github Game Off 2012 contest</a>. Without any ambition, though :)
+
 # Computer Alchemy
 
-This game is an attempt at porting the iPhone/Android game **Alchemy** to Javascript. The game is completely playable on the client side so eventually it'll run on a **Github** page.
+This game is an attempt at porting the iPhone/Android game **Alchemy** to Javascript, completely playable on the client side so eventually it'll run on a **Github** page.
 
 ## Game concept
 
