@@ -10,7 +10,7 @@ You start with basic elements. You can **clone** elements and **merge** them to 
 
 ## Current state / Changelog / TODO
 
-Initial POC live at http://ozh.github.com/game-off-2012/
+Initial POC live at http://ozh.github.com/alchemy/
 
 ### Game ideas
 
