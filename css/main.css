@@ -23,7 +23,7 @@ a, a:visited {text-decoration: none; color:inherit;}
 a:hover{text-decoration: underline;}
 
 #ggo12 {
-	background:transparent url(https://github.com/favicon.ico) left 0 no-repeat;
+	background:transparent url(../images/github_16x16.png) left 0 no-repeat;
 	padding-left: 20px;
 	font-size:12px;
 	height:18px;
