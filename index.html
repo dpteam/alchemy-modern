@@ -5,9 +5,11 @@
 	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,800,700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" type="text/css" href="css/main.css" />
 	<link rel="stylesheet" href="css/jquery.tooltip/jquery.tooltip.css" type="text/css" />
+	<link rel="stylesheet" href="css/jquery.notify/jquery.notify.css" type="text/css" />
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
 	<script type="text/javascript" src="js/jquery.tooltip.js"></script>
+	<script type="text/javascript" src="js/jquery.notify.js"></script>
 	<link rel="shortcut icon" href="images/favicon.ico" />
 	<title>Computer Alchemy</title>
 	</head>
@@ -22,25 +24,65 @@
 	
 
 	<div id="game">
+	
+		<div id="badges_wrap">
+			<div id="badges_label" class="block_label">Badges</div>
+			<div id="badges">
+				<div id="noob" class="badge">noob</div>
+				<div id="noob" class="badge">noob</div>
+			</div>
+		</div>
 
+		<div id="inventory_label" class="block_label">Inventory</div>
 		<div id="inventory">
 
 			<div id="divclear" class="clear"></div>
 		</div>
 	
+		<div id="play_label" class="block_label">Playground</div>
 		<div id="play">
 		
 		</div>
 	
 	</div>
 
-	<div id="control">
-		<div id="reset">reset</div>
+	<div id="controls">
+		<div id="reset" class="control" data-tooltip="Reset the playground area">reset</div>
+		<div id="load"  class="control enabled" data-tooltip="Enter code to load a saved game">load</div>
+		<div id="save"  class="control enabled" data-tooltip="Generate code to save your game (inventory &amp; badges)">save</div>
 	</div>
 	
 	<a id="ggo12" href="https://github.com/ozh/alchemy">Github project page</a>
 
 	
+</div>
+
+<div id="notify" style="display:none">
+     <!-- 
+    Later on, you can choose which template to use by referring to the 
+    ID assigned to each template.  Alternatively, you could refer
+    to each template by index, so in this example, "basic-tempate" is
+    index 0 and "advanced-template" is index 1.
+    -->
+	<div id="default">
+		<h1>#{title}</h1>
+		<p>#{text}</p>
+	</div>
+	
+	<div id="sticky">
+		<a class="ui-notify-close ui-notify-cross" href="#">x</a>
+		<h1>#{title}</h1>
+		<p>#{text}</p>
+	</div>	
+
+ 	<div id="loadsave">
+		<a class="ui-notify-close ui-notify-cross" href="#">x</a>
+		<h1>#{title}</h1>
+		<p>#{text}</p>
+		<textarea>#{gamecode}</textarea>
+		<button>#{button}</button>
+	</div>	
+ 
 </div>
 	
 <script type="text/javascript" src="js/main.js"></script>

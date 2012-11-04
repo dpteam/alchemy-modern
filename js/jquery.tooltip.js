@@ -49,17 +49,22 @@
       * element's location
       **/
      function _show(target_elm) {
-		var name = elem_get_name( target_elm );
-		var mix = combo[name].needs || '';
-		var info = combo[name].info || '';
-		if( mix ) {
-			mix = mix[0] + ' <b>+</b> ' + mix[1] ;
-		}
-		if( mix && info ) {
-			mix += '<br/>';
-		}
-		if( info ) {
-			mix += '<small>' + info + '</small>';
+		if( $(target_elm).attr('data-tooltip') != null ) {
+			var name = '';
+			var mix = $(target_elm).attr('data-tooltip');
+		} else {
+			var name = elem_get_name( target_elm );
+			var mix = COMBO[name].needs || '';
+			var info = COMBO[name].info || '';
+			if( mix ) {
+				mix = mix[0] + ' <b>+</b> ' + mix[1] ;
+			}
+			if( mix && info ) {
+				mix += '<br/>';
+			}
+			if( info ) {
+				mix += '<small>' + info + '</small>';
+			}
 		}
 	   var dialog_content = '<div style="display:none;" title="'+name+'">'+ mix +'</div>';
        var dialog_box = _create(dialog_content);

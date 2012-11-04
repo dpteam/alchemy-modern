@@ -1,9 +1,9 @@
 // List of playable elements and elements in inventory
 var playable = [];
-var inventory = [];
+var inventory = [ 'Air', 'Water', 'Fire', 'Earth' ];
 
 // List of possible combos to create new elements
-var combo = {
+var COMBO = {
 	'Air'   : { info: "An ancient classical element" },
 	'Water' : { info: "An ancient classical element" },
 	'Fire'  : { info: "An ancient classical element" },
@@ -31,20 +31,24 @@ var combo = {
 	
 };
 
+var BADGES = {
+	// "Badge Name" : { def: "Awesome badge description", icon: "this_badge.png" },
+};
+
 // Const
 var ELEMENT_PROXIMITY = 10; // distance between 2 elements (in pixel) for them to be considered overlapping
+var ELEM_HEIGHT = ELEM_WIDTH = '32px';
+
 var BODY_BGCOLOR = $('body').css( 'background-color' );
 var BODY_BGCOLOR_DARK = '#5B5050';
 var DEFAULT_INVENTORY = [ 'Air', 'Water', 'Fire', 'Earth' ];
 
-var ELEM_HEIGHT = ELEM_WIDTH = '32px';
 
-// Array of combo keys for faster parsing
-var VALID_ELEMENTS = [];
-for( var elem in combo ) {
-	VALID_ELEMENTS.push( elem );
-}
+// Array of COMBO keys for faster parsing
+var COMBO_KEYS = elem_get_obj_keys( COMBO );
 
+// Array of BADGES keys for faster parsing
+var BADGES_KEYS = elem_get_obj_keys( BADGES );
 
 // Draggable options for elements in the play area
 var dragged_twice = {
@@ -69,22 +73,129 @@ $(function() {
 	elem_init_droppable();
 	elem_update_inventory();
 	elem_update_playable();
-	elem_init_controls();
+	elem_init_controls(); // all the misc stuff
 });
 
-// Init controls
+// Init controls and misc stuff
 function elem_init_controls() {
-	$('#reset').click(function(){
+	// Notification system
+ 	$("#notify").notify();
 
+	// Control tooltips
+	$('#controls .control').tooltip();
+	
+	// Reset button
+	$('#reset').click(function(){
+		var num = parseInt( $( '#play .elem' ).length ) ;
+		var speed = num < 10 ? 200 : parseInt( 2000 / num );
 		$( '#play .elem' ).each( function( i, e ) {
 			setTimeout(function(){
 				elem_destroy( $(e) );
-			}, 100*i);
+			}, speed*i);
 		});	
+	});
+	
+	// Load
+	$('#load').click(function(){
+		if( $("#notify div").is(':visible') )
+			return;
+	
+		var options = {
+			gamecode: '',
+			button: 'Load'
+		};
+
+		var box = elem_notify(
+			'Load a game',
+			'Paste a game code. This will overwrite your current game.',
+			'loadsave', options
+		);
+		$('#notify textarea').focus( function(){ $(this).select(); } );
+		$('#notify button').click( function(){ elem_load_game( $('#notify textarea').val() ); box.close( true ); } );
 
 	});
+	
+	
+	// Save
+	// gmailto link: https://mail.google.com/mail/?view=cm&fs=1&body=zomg%0Ahello%0Aworld
+	$('#save').click(function(){
+		if( $("#notify div").is(':visible') )
+			return;
+	
+		var options = {
+			gamecode: elem_save_game(),
+			button: 'Done'
+		};
+
+		var box = elem_notify(
+			'Save your game',
+			'Here is the code to save your game. Write it down or mail it to you!',
+			'loadsave', options
+		);
+		$('#notify textarea').focus( function(){ $(this).select(); } );
+		$('#notify button').click( function(){ box.close( true ); } );
+
+	});
+	
 }
 
+// Save game state
+function elem_save_game() {
+	var game = '';
+	
+	// Get badges & elements
+	game += 'elements:' + inventory.toString();
+	game += '&badges:'  + BADGES_KEYS.toString();
+	
+	return elem_encode( game );
+}
+
+// Load game state
+function elem_load_game( game ) {
+	if( game == null )
+		return;
+	
+	game = elem_decode( game ).split('&');
+	// [ 'elements:this,that', 'badges:this,that' ]
+	
+	var decoded = [];
+	try {
+		$(game).each(function( i, e ){
+			e = e.split(':');
+			decoded[ e[0] ] = e[1].split(',');
+		});
+	} catch( err ) {
+		elem_notify( "Oops!", "You have entered an incorrect game code. Please retry!", 'sticky' );
+		return false;
+	}
+
+	// Load inventory
+	inventory = decoded['elements'];
+	elem_init_inventory();
+	
+	// Do something with badges
+	
+}
+
+// Notify wrapper function. Optional type : "default" or empty, "sticky"
+function elem_notify( title, text, type, more_options ) {
+	if( title == null || text == null ) {
+		return;
+	}
+	
+	type = ( type == null ? "default" : type );
+	var expires = ( type == "default" ? 3000 : 0 );
+	
+	var params = { title: title, text: text };
+	if( more_options != null && typeof( more_options ) == 'object' ) {
+		$.extend( params, more_options );
+	}
+	
+	return $('#notify').notify( "create", type,
+		params,
+		{ expires: expires, speed: 1000 }
+	);
+}
 
 // Init draggables
 function elem_init_draggable() {
@@ -102,6 +213,9 @@ function elem_init_draggable() {
 				$( newdiv ).attr( 'id', id ).appendTo( '#play' );
 				$( newdiv ).draggable();
 				$( newdiv ).draggable( 'option', dragged_twice );
+				$( newdiv ).dblclick(function(){
+					elem_clone_playable_element( newdiv );
+				});;
 				elem_was_moved( newdiv, id );
 			}
 		},
@@ -164,78 +278,88 @@ function elem_was_moved( el, id ) {
 		if( e.id != id ) {
 			if( Math.abs( parseInt( top - e.top ) ) <= ELEMENT_PROXIMITY && Math.abs( parseInt( left - e.left ) ) <= ELEMENT_PROXIMITY ) {
 
-				// We have an overlap. Is it a combo ?
-				var new_elem = elem_is_combo( elem_get_name( el ), e.name );
-				if( new_elem.length >= 1 ) {
+				// We have an overlap. Is it a COMBO ?
+				var new_elems = elem_is_combo( elem_get_name( el ), e.name );
+				if( new_elems.length >= 1 ) {
 
-					// Spring new element(s)
-					$( new_elem ).each( function( i, e ) {
-						setTimeout(function(){
-							elem_add_to_play( e, top, left );
-						}, 300*i);
-					});
-					
 					// Destroy the two elements
 					$( $('#'+e.id) ).hide("puff", {}, 500);
 					elem_destroy( $( '#'+e.id ) );
 					$( $('#'+id) ).hide("puff", {}, 500);
 					elem_destroy( $('#'+id) );
+
+					// Spring new element(s)
+					$( new_elems ).each( function( i, e ) {
+						setTimeout(function(){
+							elem_add_to_play( e, top, left );
+						}, 300*i);
+					});
 					
 					// Add new element(s) to inventory
-					$( new_elem ).each( function( i, e ) {
-						if( !elem_in_inventory( e ) ) {
-							setTimeout(function(){
-								elem_add_to_inventory( e );
-							}, 300*i);
-						}
-					});
+					elem_add_new_elements_to_inventory( new_elems );
 				}
 			}
 		}
 	});
 }
 
+// Add new elements to inventory (global array and div)
+// no_check_if_already_exists == true : faster anim, no popup, if #inventory .elem is cleared first
+function elem_add_new_elements_to_inventory( new_elems, no_check_if_already_exists ) {
+	var speed = ( no_check_if_already_exists == true ? 50 : 300 );
+	$( new_elems ).each( function( i, e ) {
+		if( !elem_in_inventory( e ) || no_check_if_already_exists == true ) {
+			setTimeout( function(){
+				elem_add_to_inventory( e, no_check_if_already_exists );
+			}, speed*i );
+		}
+	});
+}
+
+
 // Add new element to playground
 function elem_add_to_play( new_elem, top, left ) {
 	top = top + elem_return_random( 30, 10 );
 	left = left + elem_return_random( 30, 10 );
 	var newdiv = $( '<div style="display:none" class="elem elem_' + new_elem + '">' + new_elem + '</div>' )
-	$(newdiv).appendTo( '#play' );
-	$(newdiv).css({ top: top, left: left, position: "absolute" }).draggable();
-	$(newdiv).draggable( "option", dragged_twice );
-	$(newdiv).attr( "id", elem_new_id() );
-	$(newdiv).effect("bounce", { times:3 }, 300).fadeIn('slow');
+	$(newdiv)
+		.appendTo( '#play' )
+		.css({ top: top, left: left, position: "absolute" }).draggable();
+	$(newdiv)
+		.draggable( "option", dragged_twice )
+		.attr( "id", elem_new_id() )
+		.effect("bounce", { times:5 }, 600).fadeIn('slow');
+	$(newdiv).dblclick(function(){
+		elem_clone_playable_element( newdiv );
+	});
+	
 	elem_update_playable();
 }
 
-// Add new element to inventory
-function elem_add_to_inventory( new_elem ) {
-	var newdiv = elem_add_new_div_to_inventory( new_elem );
-	elem_init_draggable();
-	$(newdiv).show("drop", { direction: "up" }, 1000);
-	elem_update_inventory();
-	elem_update_fragment( new_elem );
+// Clone playable element div
+function elem_clone_playable_element( elem ) {
+	var p = $( elem ).position();
+	elem_add_to_play( elem_get_name( elem ), parseInt( p.top ), parseInt( p.left ) );
 }
 
-// Guess inventory from fragment
+// Initialize inventory
 function elem_init_inventory() {
+	/*
+	// Load inventory from fragment
 	var frag = elem_decode( document.location.hash );
 	inventory = DEFAULT_INVENTORY;
 	if( frag != '' ) {
 		$( frag.split(',') ).each(function(i,e){
-			//console.log (e, $.inArray( e, VALID_ELEMENTS )
-			if( $.inArray( e, VALID_ELEMENTS ) >= 0 ) {
+			//console.log (e, $.inArray( e, COMBO_KEYS )
+			if( $.inArray( e, COMBO_KEYS ) >= 0 ) {
 				inventory.push( e );
 			}
 		});
 	}
+	*/
 	// Draw inventory
-	$( inventory ).each(function(i,e){
-		var newdiv = elem_add_new_div_to_inventory( e );
-		setTimeout(function(){
-			$(newdiv).show("drop", { direction: "up" }, 500);
-		}, 60*i);
-	});
+	$('#inventory .elem').remove();
+	elem_add_new_elements_to_inventory( inventory, true );
 }
 
 // Add a new (hidden) div element to the inventory
@@ -246,6 +370,18 @@ function elem_add_new_div_to_inventory( name ) {
 	return( newdiv );
 }
 
+// Add new element to inventory
+function elem_add_to_inventory( new_elem, do_it_fast ) {
+	var newdiv = elem_add_new_div_to_inventory( new_elem );
+	elem_init_draggable();
+	var speed = ( do_it_fast == true ? 300 : 1000 );
+	$(newdiv).show( "drop", { direction: "up" }, speed );
+	elem_update_inventory();
+	//elem_update_fragment( new_elem );
+	if( do_it_fast != true ) {
+		elem_notify( "New element !", "You have created <b>" + new_elem + "</b>" );
+	}
+}
 
 // Update URL fragment with new elem
 function elem_update_fragment( elem ) {
@@ -256,18 +392,26 @@ function elem_update_fragment( elem ) {
 	document.location.hash = elem_encode( hash + elem );
 }
 
-// Encrypt/compress string
+// Encrypt string. TODO: make something at least a bit more cryptic.
 function elem_encode( str ) {
-	// return lzw_encode( Base64.encode ( str ) );
 	return ( Base64.encode ( str ) );
+	// return lzw_encode( Base64.encode ( str ) );
+	// return elem_rot13( Base64.encode ( str ) );
 }
 
-// Decrypt/uncompress string
+// Decrypt string
 function elem_decode( str ) {
-	// return lzw_decode( Base64.decode ( str ) );
 	return ( Base64.decode ( str ) );
+	// return lzw_decode( Base64.decode ( str ) );
+	// return elem_rot13( Base64.decode ( str ) );
 }
 
+// Rot13. OMG this will be undecypherable!!1!
+function elem_rot13( str ){
+    return str.replace(/[a-zA-Z]/g, function(c){
+        return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+    });
+}
 
 // Check if element already in inventory
 function elem_in_inventory( elem ) {
@@ -287,14 +431,14 @@ function elem_update_inventory() {
 }
 
 
-// Check if two elements make a combo
+// Check if two elements make a COMBO
 function elem_is_combo( elem1, elem2 ) {
 	var test_combo = [ elem1, elem2 ];
 
 	var elems = [];
-	for( var elem in combo ) {
+	for( var elem in COMBO ) {
 		// Compare 2 arrays: http://stackoverflow.com/questions/1773069/using-jquery-to-compare-two-arrays
-		if( $(combo[elem].needs).not(test_combo).length == 0 && $(test_combo).not(combo[elem].needs).length == 0 ) {
+		if( $(COMBO[elem].needs).not(test_combo).length == 0 && $(test_combo).not(COMBO[elem].needs).length == 0 ) {
 			elems.push( elem );
 		}
 	}
@@ -383,6 +527,15 @@ function elem_get_name( el ) {
 	var matches = name.match(/elem_(\S+)\s+/);
 	name = matches[1].replace(/_/, ' ');
 	return ( name );
+}
+
+// Return array of object keys
+function elem_get_obj_keys( obj ) {
+	var result = [];
+	for( var key in obj ) {
+		result.push( key );
+	}
+	return result;
 }
 
 
@@ -599,3 +752,4 @@ function lzw_decode(s) {
     }
     return out.join("");
 }
+

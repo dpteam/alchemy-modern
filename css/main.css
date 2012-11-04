@@ -43,31 +43,73 @@ div.clear {width:1px;height:1px;clear:both;}
 	margin-bottom: 10px;
 }
 
+div.block_label {
+	background:#EEE2E2;
+	display:inline-block;
+	margin-left:15px;
+	padding:1px 10px;
+	border-top-left-radius:5px;
+	border-top-right-radius:5px;
+	font-size:70%;
+	cursor:default;
+}
+
+#badges_wrap {
+	display:none;
+}
+
+#badges {
+	background: #9C9494;
+	border-radius:10px;
+	padding:5px 7px;
+	border:1px solid #EEE2E2;
+	height:74px;
+	overflow:auto;
+	margin-bottom:10px;
+}
+
+#badges div.badge {
+	width:64px;
+	height:64px;
+	float:left;
+	margin:3px 3px 5px 3px;
+	overflow:hidden;
+	word-break: break-all;
+	line-height:10px;
+	ztext-indent:-999px;
+	border-radius:5px;
+	border: 2px solid white;
+	background:#caf;
+	cursor:default;
+}
+
 #inventory {
 	background: #9C9494;
 	border-radius:10px;
 	padding:5px 7px;
 	border:1px solid #EEE2E2;
 	max-height:160px;
+	min-height:41px;
 	overflow:auto;
+	margin-bottom:10px;
 }
 
 #play {
-	margin-top:10px;
-	background: #CCC2C2;
+	background: #B4ABAB;
 	height:400px;
 	border:1px solid #EEE2E2;
 	border-radius:10px;
 	padding:5px 7px;
 }
 
-#reset {
+#controls .control {
 	float:right;
 	background: #9C9494;
 	border-radius:10px;
 	padding:5px 7px;
 	border:1px solid #EEE2E2;
 	cursor:pointer;
+	margin-left:10px;
 }
 
 .elem {
