@@ -20,7 +20,7 @@ Initial POC live at http://ozh.github.com/alchemy/
 
 - Every [interval or event to be determined] a __popular character__ will be introduced and available as an element, allowing for new combos (example: __IBM + Bill Gates = MS DOS__)
 
-- This needs badges. People love badges.
+- This needs badges. People love badges. With a "tweet that badge" button. People love tweet buttons.
 
 ### Needs
 
