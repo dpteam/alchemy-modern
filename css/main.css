@@ -31,6 +31,10 @@ a:hover{text-decoration: underline;}
 	color:white;
 }
 
+#ggo12:hover{
+	background-position: 1px 0;
+}
+
 h1 {margin:3px 0px;}
 
 div.clear {width:1px;height:1px;clear:both;}
