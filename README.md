@@ -22,6 +22,10 @@ Initial POC live at http://ozh.github.com/alchemy/
 
 - This needs badges. People love badges. With a "tweet that badge" button. People love tweet buttons.
 
+- Tips in the notification box
+
+- Make use of <a href="http://fortawesome.github.com/Font-Awesome/">Font Awesome</a>. It's awesome.
+
 ### Needs
 
 - Ideas for dozens of mixable elements. I think the game will start being interesting around 250 elements.
