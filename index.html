@@ -10,6 +10,8 @@
 	<script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
 	<script type="text/javascript" src="js/jquery.tooltip.js"></script>
 	<script type="text/javascript" src="js/jquery.notify.js"></script>
+	<script type="text/javascript" src="js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="js/main.js"></script>
 	<link rel="shortcut icon" href="images/favicon.ico" />
 	<title>Computer Alchemy</title>
 	</head>
@@ -47,7 +49,8 @@
 	</div>
 
 	<div id="controls">
-		<div id="reset" class="control" data-tooltip="Reset the playground area">reset</div>
+		<div id="reset" class="control" data-tooltip="Reset the game">reset</div>
+		<div id="empty" class="control" data-tooltip="Empty the playground area">empty</div>
 		<div id="load"  class="control enabled" data-tooltip="Enter code to load a saved game">load</div>
 		<div id="save"  class="control enabled" data-tooltip="Generate code to save your game (inventory &amp; badges)">save</div>
 	</div>
@@ -83,8 +86,14 @@
 		<button>#{button}</button>
 	</div>	
  
+ 	<div id="confirm">
+		<a class="ui-notify-close ui-notify-cross" href="#">x</a>
+		<h1>#{title}</h1>
+		<p>#{text}</p>
+		<button>#{button}</button>
+	</div>	
+ 
 </div>
 	
-<script type="text/javascript" src="js/main.js"></script>
 </body>
 </html>

@@ -43,6 +43,7 @@ var BODY_BGCOLOR = $('body').css( 'background-color' );
 var BODY_BGCOLOR_DARK = '#5B5050';
 var DEFAULT_INVENTORY = [ 'Air', 'Water', 'Fire', 'Earth' ];
 
+var COOKIE = 'elem'; // cookie name
 
 // Array of COMBO keys for faster parsing
 var COMBO_KEYS = elem_get_obj_keys( COMBO );
@@ -67,14 +68,16 @@ var dragged_twice = {
 };
 
 // Start everything
-$(function() {
-	elem_init_inventory();
+$(function() { elem_init(); });
+function elem_init(){
+	// elem_init_inventory();
+	elem_load_game();
 	elem_init_draggable();
 	elem_init_droppable();
 	elem_update_inventory();
 	elem_update_playable();
 	elem_init_controls(); // all the misc stuff
-});
+}
 
 // Init controls and misc stuff
 function elem_init_controls() {
@@ -84,8 +87,8 @@ function elem_init_controls() {
 	// Control tooltips
 	$('#controls .control').tooltip();
 	
-	// Reset button
-	$('#reset').click(function(){
+	// Empty button
+	$('#empty').click(function(){
 		var num = parseInt( $( '#play .elem' ).length ) ;
 		var speed = num < 10 ? 200 : parseInt( 2000 / num );
 		$( '#play .elem' ).each( function( i, e ) {
@@ -93,6 +96,25 @@ function elem_init_controls() {
 				elem_destroy( $(e) );
 			}, speed*i);
 		});	
+	});
+	
+	// Reset button
+	$('#reset').click(function(){
+		if( $("#notify div").is(':visible') )
+			return;
+	
+		var options = {
+			button: 'Reset'
+		};
+
+		var box = elem_notify(
+			'Reset the game',
+			'Click "Reset" to re-initialize the game from start.',
+			'confirm', options
+		);
+		$('#notify textarea').focus( function(){ $(this).select(); } );
+		$('#notify button').click( function(){ elem_reset_game(); box.close( true ); } );
+
 	});
 	
 	// Load
@@ -111,7 +133,7 @@ function elem_init_controls() {
 			'loadsave', options
 		);
 		$('#notify textarea').focus( function(){ $(this).select(); } );
-		$('#notify button').click( function(){ elem_load_game( $('#notify textarea').val() ); box.close( true ); } );
+		$('#notify button').click( function(){ elem_load_game( $('#notify textarea').val(), true ); box.close( true ); } );
 
 	});
 	
@@ -129,7 +151,7 @@ function elem_init_controls() {
 
 		var box = elem_notify(
 			'Save your game',
-			'Here is the code to save your game. Write it down or mail it to you!',
+			"Here is the code to save your game. Write it down or mail it to you! (It's also saved in a cookie)",
 			'loadsave', options
 		);
 		$('#notify textarea').focus( function(){ $(this).select(); } );
@@ -139,42 +161,72 @@ function elem_init_controls() {
 	
 }
 
-// Save game state
+// Save game state in a cookie and return it
 function elem_save_game() {
 	var game = '';
 	
 	// Get badges & elements
 	game += 'elements:' + inventory.toString();
 	game += '&badges:'  + BADGES_KEYS.toString();
+	console.log( 'save ', game );
+	game = elem_encode( game );
 	
-	return elem_encode( game );
+	// Save to cookie
+	$.cookie( COOKIE, game );
+	
+	return game;
 }
 
-// Load game state
-function elem_load_game( game ) {
-	if( game == null )
+// Reset game state
+function elem_reset_game() {
+	$.removeCookie( COOKIE );
+	inventory = DEFAULT_INVENTORY;
+	elem_init_inventory();
+}
+
+// Load game state. Var from_dialog: set to true if function called from dialog box
+function elem_load_game( game, from_dialog ) {
+	if( game == null && from_dialog == true)
 		return;
+
+	var from_cookie = false;
+	if( game == null && $.cookie( COOKIE ) != null ) {
+		game = $.cookie( COOKIE );
+		from_cookie = true;
+	}
 	
-	game = elem_decode( game ).split('&');
-	// [ 'elements:this,that', 'badges:this,that' ]
 	
 	var decoded = [];
 	try {
+		// Decode game code
+		game = elem_decode( game ).split('&');	// [ 'elements:this,that', 'badges:this,that' ]
 		$(game).each(function( i, e ){
 			e = e.split(':');
 			decoded[ e[0] ] = e[1].split(',');
 		});
+		console.log( decoded, from_cookie );
+		
+		// Load inventory & badges
+		inventory   = decoded['elements'];
+		BADGES_KEYS = decoded['badges'];
+		
+		// Do something with badges
+			
+		// Overwrite cookie
+		if( from_cookie == false ) {
+			elem_save_game();
+		}
+		
 	} catch( err ) {
-		elem_notify( "Oops!", "You have entered an incorrect game code. Please retry!", 'sticky' );
-		return false;
-	}
+		if( from_dialog != null ) {
+			elem_notify( "Oops!", "You have entered an incorrect game code. Please retry!", 'sticky' );
+			return false;
+		}
 
-	// Load inventory
-	inventory = decoded['elements'];
-	elem_init_inventory();
+	}
 	
-	// Do something with badges
-	
+	// Init game
+	elem_init_inventory();	
 }
 
 // Notify wrapper function. Optional type : "default" or empty, "sticky"
@@ -281,6 +333,7 @@ function elem_was_moved( el, id ) {
 				// We have an overlap. Is it a COMBO ?
 				var new_elems = elem_is_combo( elem_get_name( el ), e.name );
 				if( new_elems.length >= 1 ) {
+					// OMG! Combo!
 
 					// Destroy the two elements
 					$( $('#'+e.id) ).hide("puff", {}, 500);
@@ -295,8 +348,9 @@ function elem_was_moved( el, id ) {
 						}, 300*i);
 					});
 					
-					// Add new element(s) to inventory
+					// Add new element(s) to inventory and update game cookie
 					elem_add_new_elements_to_inventory( new_elems );
+					console.log( new_elems );					
 				}
 			}
 		}
@@ -311,6 +365,7 @@ function elem_add_new_elements_to_inventory( new_elems, no_check_if_already_exis
 		if( !elem_in_inventory( e ) || no_check_if_already_exists == true ) {
 			setTimeout( function(){
 				elem_add_to_inventory( e, no_check_if_already_exists );
+				elem_save_game(); // TODO: Do better. This is gay: game saved & cookie written for each element.
 			}, speed*i );
 		}
 	});
@@ -357,6 +412,9 @@ function elem_init_inventory() {
 		});
 	}
 	*/
+	// Read cookie
+	
+	
 	// Draw inventory
 	$('#inventory .elem').remove();
 	elem_add_new_elements_to_inventory( inventory, true );

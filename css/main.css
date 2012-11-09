@@ -105,11 +105,26 @@ div.block_label {
 #controls .control {
 	float:right;
 	background: #9C9494;
-	border-radius:10px;
-	padding:5px 7px;
+	border-radius:6px;
+	padding:2px 5px;
 	border:1px solid #EEE2E2;
 	cursor:pointer;
 	margin-left:10px;
+	font-size:12px;
+}
+
+#controls .control:hover {
+	border: 1px solid #fff;
+	background:#AEA6A6;
+}
+
+#controls  #reset{
+	margin-left:30px;
+}
+
+#controls  #reset:hover {
+	background:#BB5050;
+	border: 1px solid red;
 }
 
 .elem {
