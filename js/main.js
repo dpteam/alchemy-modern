@@ -168,7 +168,6 @@ function elem_save_game() {
 	// Get badges & elements
 	game += 'elements:' + inventory.toString();
 	game += '&badges:'  + BADGES_KEYS.toString();
-	console.log( 'save ', game );
 	game = elem_encode( game );
 	
 	// Save to cookie
@@ -204,7 +203,6 @@ function elem_load_game( game, from_dialog ) {
 			e = e.split(':');
 			decoded[ e[0] ] = e[1].split(',');
 		});
-		console.log( decoded, from_cookie );
 		
 		// Load inventory & badges
 		inventory   = decoded['elements'];
@@ -349,8 +347,11 @@ function elem_was_moved( el, id ) {
 					});
 					
 					// Add new element(s) to inventory and update game cookie
-					elem_add_new_elements_to_inventory( new_elems );
-					console.log( new_elems );					
+					$( new_elems ).each( function( i, e ) {
+						if( !elem_in_inventory( e ) ) {
+							elem_add_new_elements_to_inventory( new_elems );
+						}
+					});
 				}
 			}
 		}
@@ -358,17 +359,23 @@ function elem_was_moved( el, id ) {
 }
 
 // Add new elements to inventory (global array and div)
-// no_check_if_already_exists == true : faster anim, no popup, if #inventory .elem is cleared first
-function elem_add_new_elements_to_inventory( new_elems, no_check_if_already_exists ) {
-	var speed = ( no_check_if_already_exists == true ? 50 : 300 );
+// faster == true : faster anim, no popup
+function elem_add_new_elements_to_inventory( new_elems, faster ) {
+	var num = new_elems.length;
+	var speed = ( faster == true ? parseInt( 2000 / num ) : 1000 );
+	
+	// Add elements
 	$( new_elems ).each( function( i, e ) {
-		if( !elem_in_inventory( e ) || no_check_if_already_exists == true ) {
-			setTimeout( function(){
-				elem_add_to_inventory( e, no_check_if_already_exists );
-				elem_save_game(); // TODO: Do better. This is gay: game saved & cookie written for each element.
-			}, speed*i );
-		}
+		setTimeout( function(){
+			elem_add_to_inventory( e, faster );
+		}, speed*i );
 	});
+	
+	// Save game after all elements have been added
+	setTimeout( function(){
+		elem_save_game();
+	}, parseInt( speed*num + 100 ) );
+	
 }
 
 
