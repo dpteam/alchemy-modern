@@ -10,6 +10,7 @@ var COMBO = {
 	'Earth' : { info: "An ancient classical element" },
 	
 	'Mud' : { info: "It's muddy.", needs: [ 'Water', 'Earth' ] },
+	'Dirt' : { info: "It's dirty.", needs: [ 'Water', 'Earth' ] },
 	'Steam' : { info: "Caution, may be hot", needs: [ 'Fire', 'Water' ] },
 	'Energy' : { info: "You've got the power", needs: [ 'Air', 'Fire' ] },
 	'Lava' : { info: "What have you done?!", needs: [ 'Earth', 'Fire' ] },
@@ -67,6 +68,8 @@ var dragged_twice = {
 	}
 };
 
+/****************************************** Functions, stop editing **************************************/
+
 // Start everything
 $(function() { elem_init(); });
 function elem_init(){
@@ -74,7 +77,7 @@ function elem_init(){
 	elem_load_game();
 	elem_init_draggable();
 	elem_init_droppable();
-	elem_update_inventory();
+	elem_update_inventory_tooltips();
 	elem_update_playable();
 	elem_init_controls(); // all the misc stuff
 }
@@ -194,33 +197,35 @@ function elem_load_game( game, from_dialog ) {
 		from_cookie = true;
 	}
 	
+	// If there's a game cookie, attempt to read it and load game from it
+	if( $.cookie( COOKIE ) ) {
 	
-	var decoded = [];
-	try {
-		// Decode game code
-		game = elem_decode( game ).split('&');	// [ 'elements:this,that', 'badges:this,that' ]
-		$(game).each(function( i, e ){
-			e = e.split(':');
-			decoded[ e[0] ] = e[1].split(',');
-		});
-		
-		// Load inventory & badges
-		inventory   = decoded['elements'];
-		BADGES_KEYS = decoded['badges'];
-		
-		// Do something with badges
+		var decoded = [];
+		try {
+			// Decode game code
+			game = elem_decode( game ).split('&');	// [ 'elements:this,that', 'badges:this,that' ]
+			$(game).each(function( i, e ){
+				e = e.split(':');
+				decoded[ e[0] ] = e[1].split(',');
+			});
 			
-		// Overwrite cookie
-		if( from_cookie == false ) {
-			elem_save_game();
-		}
-		
-	} catch( err ) {
-		if( from_dialog != null ) {
-			elem_notify( "Oops!", "You have entered an incorrect game code. Please retry!", 'sticky' );
-			return false;
-		}
+			// Load inventory & badges
+			inventory   = decoded['elements'];
+			BADGES_KEYS = decoded['badges'];
+			
+			// Overwrite cookie
+			if( from_cookie == false ) {
+				elem_save_game();
+			}
+			
+		} catch( err ) {
+			if( from_dialog != null ) {
+				elem_notify( "Oops!", "You have entered an incorrect game code. Please retry!", 'sticky' );
+				return false;
+			}
 
+		}
+	
 	}
 	
 	// Init game
@@ -330,7 +335,7 @@ function elem_was_moved( el, id ) {
 
 				// We have an overlap. Is it a COMBO ?
 				var new_elems = elem_is_combo( elem_get_name( el ), e.name );
-				if( new_elems.length >= 1 ) {
+				if( new_elems ) {
 					// OMG! Combo!
 
 					// Destroy the two elements
@@ -342,7 +347,7 @@ function elem_was_moved( el, id ) {
 					// Spring new element(s)
 					$( new_elems ).each( function( i, e ) {
 						setTimeout(function(){
-							elem_add_to_play( e, top, left );
+							elem_add_to_play_area( e, top, left );
 						}, 300*i);
 					});
 					
@@ -361,26 +366,30 @@ function elem_was_moved( el, id ) {
 // Add new elements to inventory (global array and div)
 // faster == true : faster anim, no popup
 function elem_add_new_elements_to_inventory( new_elems, faster ) {
-	var num = new_elems.length;
-	var speed = ( faster == true ? parseInt( 2000 / num ) : 1000 );
+
+	var speed = parseInt( 1500 / new_elems.length );
 	
-	// Add elements
+	// Add elements to inventory array (remove duplicates if any)
+	//$.merge( inventory, new_elems );
+	//var inventory_unique = [];
+	$.each( new_elems, function( i, el ){
+		if( $.inArray( el, inventory ) === -1) inventory.push( el );
+	});
+
+	// Save game
+	elem_save_game();
+	
+	// Add elements to inventory area
 	$( new_elems ).each( function( i, e ) {
 		setTimeout( function(){
-			elem_add_to_inventory( e, faster );
+			elem_add_to_inventory_area( e, faster );
 		}, speed*i );
 	});
-	
-	// Save game after all elements have been added
-	setTimeout( function(){
-		elem_save_game();
-	}, parseInt( speed*num + 100 ) );
-	
 }
 
 
 // Add new element to playground
-function elem_add_to_play( new_elem, top, left ) {
+function elem_add_to_play_area( new_elem, top, left ) {
 	top = top + elem_return_random( 30, 10 );
 	left = left + elem_return_random( 30, 10 );
 	var newdiv = $( '<div style="display:none" class="elem elem_' + new_elem + '">' + new_elem + '</div>' )
@@ -401,28 +410,11 @@ function elem_add_to_play( new_elem, top, left ) {
 // Clone playable element div
 function elem_clone_playable_element( elem ) {
 	var p = $( elem ).position();
-	elem_add_to_play( elem_get_name( elem ), parseInt( p.top ), parseInt( p.left ) );
+	elem_add_to_play_area( elem_get_name( elem ), parseInt( p.top ), parseInt( p.left ) );
 }
 
-// Initialize inventory
+// Initialize inventory area
 function elem_init_inventory() {
-	/*
-	// Load inventory from fragment
-	var frag = elem_decode( document.location.hash );
-	inventory = DEFAULT_INVENTORY;
-	if( frag != '' ) {
-		$( frag.split(',') ).each(function(i,e){
-			//console.log (e, $.inArray( e, COMBO_KEYS )
-			if( $.inArray( e, COMBO_KEYS ) >= 0 ) {
-				inventory.push( e );
-			}
-		});
-	}
-	*/
-	// Read cookie
-	
-	
-	// Draw inventory
 	$('#inventory .elem').remove();
 	elem_add_new_elements_to_inventory( inventory, true );
 }
@@ -436,12 +428,12 @@ function elem_add_new_div_to_inventory( name ) {
 }
 
 // Add new element to inventory
-function elem_add_to_inventory( new_elem, do_it_fast ) {
+function elem_add_to_inventory_area( new_elem, do_it_fast ) {
 	var newdiv = elem_add_new_div_to_inventory( new_elem );
 	elem_init_draggable();
 	var speed = ( do_it_fast == true ? 300 : 1000 );
 	$(newdiv).show( "drop", { direction: "up" }, speed );
-	elem_update_inventory();
+	elem_update_inventory_tooltips();
 	//elem_update_fragment( new_elem );
 	if( do_it_fast != true ) {
 		elem_notify( "New element !", "You have created <b>" + new_elem + "</b>" );
@@ -484,21 +476,23 @@ function elem_in_inventory( elem ) {
 }
 
 
-// Return inventory
-function elem_update_inventory() {
-	// Update global array
-	inventory = [];
-	$('#inventory .elem').each( function( i, e ) {
-		inventory.push( elem_get_name( e ) );
-	});
-	// Add tooltips
+// Update tooltips in the inventory area
+function elem_update_inventory_tooltips() {
 	$("#inventory .elem").tooltip();
 }
 
 
 // Check if two elements make a COMBO
 function elem_is_combo( elem1, elem2 ) {
-	var test_combo = [ elem1, elem2 ];
+	return alchemy.combine( elem1, elem2 );
+	
+	/*
+	// Previous method, for reference, because it's interesting: how to compare 2 arrays
+	// (interesting, but not fast probably: go through the whole object
+	
+	// TODO: when we have 200+ elements, benchmarks the 2 methods
+	
+ 	var test_combo = [ elem1, elem2 ];
 
 	var elems = [];
 	for( var elem in COMBO ) {
@@ -508,6 +502,7 @@ function elem_is_combo( elem1, elem2 ) {
 		}
 	}
 	return( elems );
+	*/
 }
 
 // Return random number, positive or negative, abs value between max and min
@@ -602,18 +597,6 @@ function elem_get_obj_keys( obj ) {
 	}
 	return result;
 }
-
-
-$.fn.wait = function(time, type) {
-	time = time || 1000;
-	type = type || "fx";
-	return this.queue(type, function() {
-		var self = this;
-		setTimeout(function() {
-			$(self).dequeue();
-		}, time);
-	});
-};
 
 /**
 *
@@ -817,4 +800,28 @@ function lzw_decode(s) {
     }
     return out.join("");
 }
+
+// Linq queries. ZOMG now that's serious business, see http://stackoverflow.com/a/13317272/36850
+
+// the Alchemy class
+function Alchemy( stuff ) {
+	var recipes = Enumerable.From(stuff).ToLookup(
+		"$.Value.needs",
+		"$.Key", 
+		"Enumerable.From($).OrderBy().ToString('+')"
+	);
+    
+	// Attempt element combo, return array of new elements created if applicable, or null
+	this.combine = function(elem1, elem2) {
+		return recipes.Get([elem1, elem2]).source;
+	};
+};
+var alchemy = new Alchemy( COMBO );
+
+/*
+Usage:
+console.log(alchemy.combine('Earth', 'Water'));   // [ "Mud" , "Boue" ]
+console.log(alchemy.combine('Earth', 'Earth')); // undefined
+console.log(alchemy.combine('Fire', 'Water')); // [ "Steam" ]
+*/
 
